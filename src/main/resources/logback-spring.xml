@@ -56,7 +56,7 @@
     </appender>
 
     <appender name="STDOUT_FILTER" class="ch.qos.logback.core.ConsoleAppender">
-        <filter class="com.gmc.trading.tool.flip.config.log.filter.WebSocketLogBackFilter"/>
+<!--        <filter class="com.gmc.trading.tool.flip.config.log.filter.WebSocketLogBackFilter"/>-->
         <layout class="ch.qos.logback.classic.PatternLayout">
             <pattern>[%d{yyyy-MM-dd}] [%d{HH:mm:ss.SSS}] %highlight([%p]) %cyan([%c{1}]) %green([%F:%L]) [%m]%n</pattern>
         </layout>

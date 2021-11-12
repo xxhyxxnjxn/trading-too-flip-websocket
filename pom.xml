@@ -10,9 +10,13 @@
     </parent>
     <groupId>com.gmc</groupId>
     <artifactId>trading-too-flip-websocket</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1</version>
+
+    <packaging>war</packaging>
+
     <name>trading-too-flip-websocket</name>
     <description>Demo project for Spring Boot</description>
+
     <properties>
         <java.version>11</java.version>
     </properties>
