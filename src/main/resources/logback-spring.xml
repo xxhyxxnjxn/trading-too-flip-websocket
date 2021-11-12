@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="true" scan="true">
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+    <property name="FILE_NAME" value="TradingTooFlip"/>
+
+    <!-- FILE Appender -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- <file>${LOG_PATH_NAME}/${FILE_NAME}.log</file> -->
+        <!--서버-->
+        <!--                <file>/var/log/tomcat9/Log/ViewLog/${FILE_NAME}.log</file>-->
+        <!--로컬-->
+        <!--        <file>Log/${FILE_NAME}.log</file>-->
+        <!-- ${user.home}-->
+        <!-- 일자별 시간별 로그파일 저장 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--서버-->
+            <fileNamePattern>/home/gmc/flip/Log/${FILE_NAME}_%d{yyyy-MM-dd, aux}/${FILE_NAME}_%d{yyyy-MM-dd_HH}.log
+            </fileNamePattern>
+
+            <!-- 일자별 로그파일 저장 기간 설정 -->
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%-5p] [%F]%M\(%L\) : %m%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE_HIKARI" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>/home/gmc/flip/Log/${FILE_NAME}_%d{yyyy-MM-dd, aux}/hikari/%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%-5p] [%F]%M\(%L\) : %m%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE_WEB_SOCKET" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>/home/gmc/flip/Log/${FILE_NAME}_%d{yyyy-MM-dd, aux}/websocket/%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%-5p] [%F]%M\(%L\) : %m%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <!-- [2018-08-17] [15:24:21.355] [log level] [logName]      [class.java line]       [message] -->
+            <!--     날짜           시간       로그레벨    로거이름   로그인클래스.java 몇번째줄    로그메세지 -->
+            <pattern>[%d{yyyy-MM-dd}] [%d{HH:mm:ss.SSS}] %highlight([%p]) %cyan([%c{1}]) %green([%F:%L]) [%m]%n</pattern>
+        </layout>
+    </appender>
+
+    <appender name="STDOUT_FILTER" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="com.gmc.trading.tool.flip.config.log.filter.WebSocketLogBackFilter"/>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>[%d{yyyy-MM-dd}] [%d{HH:mm:ss.SSS}] %highlight([%p]) %cyan([%c{1}]) %green([%F:%L]) [%m]%n</pattern>
+        </layout>
+    </appender>
+
+    <logger name="com.zaxxer.hikari" level="trace">
+        <appender-ref ref="FILE_HIKARI" />
+    </logger>
+
+    <logger name="com.gmc.trading.tool.flip.websocket" level="trace">
+        <appender-ref ref="FILE_WEB_SOCKET" />
+    </logger>
+
+    <!-- ERROR레벨 이상만 출력 -->
+    <!-- <root level="INFO"> -->
+    <root level="INFO">
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="STDOUT"/>
+<!--        <appender-ref ref="STDOUT_FILTER" />-->
+    </root>
+
+</configuration>
