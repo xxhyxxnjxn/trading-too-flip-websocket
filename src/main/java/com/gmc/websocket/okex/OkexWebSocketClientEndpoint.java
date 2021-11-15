@@ -231,6 +231,8 @@ public class OkexWebSocketClientEndpoint {
     @OnError
     public void onError(Session session, Throwable throwable) {
         log.info("okex websocket onError");
+        log.info(String.valueOf(throwable));
+        log.info(throwable.getMessage());
         throwable.printStackTrace();
     }
 
