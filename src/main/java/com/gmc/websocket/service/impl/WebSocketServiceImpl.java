@@ -25,7 +25,7 @@ public class WebSocketServiceImpl implements WebSocketService {
     @Override
     public Session okexWebSocket() {
         try {
-            String uri = "wss://wsaws.okex.com:8443/ws/v5/public";
+            String uri = "wss://wsaws.okex.com:8443/ws/v5/public/";
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             container.setDefaultMaxBinaryMessageBufferSize(1048576);
             container.setDefaultMaxTextMessageBufferSize(1048576);
