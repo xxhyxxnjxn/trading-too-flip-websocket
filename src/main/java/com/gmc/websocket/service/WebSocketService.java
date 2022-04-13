@@ -6,4 +6,8 @@ public interface WebSocketService {
 
     Session okexWebSocket();
 
+    Session upbitWebSocket();
+
+    void getTest();
+
 }
