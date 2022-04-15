@@ -1,5 +1,6 @@
 package com.gmc.websocket.controller;
 
+import com.gmc.websocket.service.WebSocketService;
 import com.gmc.websocket.upbit.UpbitWebSocketClientEndpoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -10,10 +11,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class WebsocketController {
 
-    private final UpbitWebSocketClientEndpoint upbitWebSocketClientEndpoint;
+    private final WebSocketService webSocketService;
 
     @GetMapping("/websocket")
     public void websocketTest(){
-        System.out.println("test : "+upbitWebSocketClientEndpoint.getTest());
+        System.out.println("test : "+webSocketService.getUpbitOrderBookResult());
     }
 }

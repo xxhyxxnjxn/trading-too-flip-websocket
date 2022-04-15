@@ -1,11 +1,14 @@
 package com.gmc.websocket.upbit;
 
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gmc.redis.entity.WebSocketOrderbook;
+import com.gmc.redis.repository.WebSocketOrderbookRepository;
 import com.gmc.websocket.config.BeanUtils;
-import com.gmc.websocket.service.WebSocketService;
-import com.gmc.websocket.service.impl.WebSocketServiceImpl;
+import com.gmc.websocket.domain.FlipCurrency;
+import com.gmc.websocket.repository.FlipCurrencyRepository;
 import lombok.SneakyThrows;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -14,6 +17,8 @@ import org.springframework.stereotype.Service;
 
 import javax.websocket.*;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -21,20 +26,22 @@ import java.util.concurrent.TimeUnit;
 @ClientEndpoint
 @Service
 public class UpbitWebSocketClientEndpoint {
+    private FlipCurrencyRepository currencyRepository;
+    private WebSocketOrderbookRepository webSocketOrderbookRepository;
     ExecutorService executor = Executors.newSingleThreadExecutor();
     Session session = null;
-    private WebSocketService webSocketService;
-    String test;
+    List<FlipCurrency> currencyList;
+    HashMap<Object, Object> orderBookResult = new HashMap<>();
 
     @OnOpen
     @SneakyThrows
     public void onOpen(Session session) {
         System.out.println("onOpen");
+        webSocketOrderbookRepository = (WebSocketOrderbookRepository) BeanUtils.getBean(WebSocketOrderbookRepository.class);
+        currencyRepository = (FlipCurrencyRepository) BeanUtils.getBean(FlipCurrencyRepository.class);
 
         String sendText = createSendText();
-
         session.getBasicRemote().sendText(sendText);
-
         this.session = session;
 
         sendMessage();
@@ -44,20 +51,22 @@ public class UpbitWebSocketClientEndpoint {
     public void sendMessage() {
         executor.submit(() -> {
             while (true) {
-
                 this.session.getAsyncRemote().sendText("ping");
                 TimeUnit.SECONDS.sleep(20);
             }
         });
-
     }
 
     private String createSendText() throws JSONException {
+        currencyList = currencyRepository.findByFlipExchange_FlipExchangeName("upbit");
+
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("ticket", "test");
 
         JSONArray codeArray = new JSONArray();
-        codeArray.put("KRW" + "-" + "BTC");
+        for (FlipCurrency currency : currencyList) {
+            codeArray.put(currency.getFlipPayment().toUpperCase() + "-" + currency.getFlipCurrencyName().toUpperCase());
+        }
 
         JSONObject jsonOrderbookObject = new JSONObject();
         jsonOrderbookObject.put("type", "orderbook");
@@ -72,16 +81,29 @@ public class UpbitWebSocketClientEndpoint {
     @OnMessage
     @SneakyThrows
     public void onMessage(Session session, ByteBuffer message) throws JsonProcessingException {
-
         byte[] rtnBytes = message.array();
         String rtnStr = new String(rtnBytes);
 
-        System.out.println(rtnStr);
-        this.test = rtnStr;
-
+//        System.out.println(rtnStr);
         if (!rtnStr.equals("pong")) {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode jsonNode = mapper.readTree(rtnStr);
+            String market = jsonNode.path("code").asText();
+
+//            this.orderBookResult.put(market, rtnStr);
+            WebSocketOrderbook webSocketOrderbook = webSocketOrderbookRepository.findProductByMarket(market);
+            if (webSocketOrderbook.getJsonData() == null) {
+                webSocketOrderbook = WebSocketOrderbook.builder()
+                        .jsonData(rtnStr)
+                        .market(market)
+                        .build();
+                webSocketOrderbookRepository.save(webSocketOrderbook);
+            } else {
+                webSocketOrderbook.setJsonData(rtnStr);
+                webSocketOrderbookRepository.update(webSocketOrderbook);
+
+            }
+
         }
     }
 
@@ -95,11 +117,9 @@ public class UpbitWebSocketClientEndpoint {
         System.out.println("upbit websocket onClose");
 
         this.executor.shutdown();
-
-        webSocketService = (WebSocketServiceImpl) BeanUtils.getBean(WebSocketServiceImpl.class);
     }
 
-    public String getTest(){
-        return test;
+    public HashMap<Object, Object> getOrderBookResult() {
+        return orderBookResult;
     }
 }

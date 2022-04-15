@@ -1,6 +1,7 @@
 package com.gmc.websocket.service.impl;
 
 import com.gmc.websocket.okex.OkexWebSocketClientEndpoint;
+import com.gmc.websocket.service.WebSocketClientEndpointService;
 import com.gmc.websocket.service.WebSocketService;
 import com.gmc.websocket.upbit.UpbitWebSocketClientEndpoint;
 import lombok.RequiredArgsConstructor;
@@ -11,13 +12,24 @@ import javax.websocket.ContainerProvider;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 import java.net.URI;
+import java.util.HashMap;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class WebSocketServiceImpl implements WebSocketService {
 
-    private final WebsocketTest websocketTest;
+    private final WebSocketClientEndpointService webSocketClientEndpointService;
+
+    @Override
+    public Session upbitWebSocket() {
+        return webSocketClientEndpointService.startUpbitWebsocket();
+    }
+
+    @Override
+    public HashMap<Object, Object> getUpbitOrderBookResult() {
+        return webSocketClientEndpointService.getUpbitOrderBookResult();
+    }
 
     @Override
     public Session okexWebSocket() {
@@ -35,24 +47,5 @@ public class WebSocketServiceImpl implements WebSocketService {
             throw new RuntimeException(e);
         }
     }
-
-    @Override
-    public Session upbitWebSocket() {
-        try {
-            String uri = "wss://api.upbit.com/websocket/v1";
-            WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-            final Session session = container.connectToServer(websocketTest.startWebsocket(), URI.create(uri));
-            return session;
-        } catch (Exception e) {
-            log.info(e.getMessage());
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public void getTest() {
-        System.out.println("test : "+websocketTest.printWebsocketResult());
-    }
-
 
 }

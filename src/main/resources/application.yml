@@ -1,5 +1,52 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/hanaroholdings?autoReconnect=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: goodman
+    password: Gmc@1234!
+    hikari:
+      maximumPoolSize: 48
+      idleTimeout: 60000
+      maxLifetime: 60000
+    dbcp2:
+      test-while-idle: true
+  jpa:
+    open-in-view: true
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+      use-new-id-generator-mappings: true
+    properties:
+      hibernate:
+        #        show_sql: true
+        format_sql: true
+  jackson:
+    serialization:
+      fail-on-empty-beans: false
+  output:
+    ansi:
+      enabled: detect
+  task:
+    execution:
+      pool:
+        core-size: 100
+        max-size: 500
+  devtools:
+    restart:
+      enabled: true
+    livereload:
+      enabled: true
+  redis:
+    host: localhost
+    port: 6379
+
 server:
-  port: 80
+  port: 8080
   servlet:
     context-path: /
     encoding:
@@ -9,20 +56,44 @@ server:
   error:
     include-message: always
 
+logging:
+  config: classpath:logback-spring.xml
+  file:
+    path: logs
+  level:
+    #    org.hibernate.SQL: debug
+    #    org.hibernate.type: trace
+    com.gmc.trading.tool.flip: error
+
+profile:
+  certification:
+    host: localhost
+---
 spring:
+  config:
+    activate:
+      on-profile: test
   datasource:
     driver-class-name: org.postgresql.Driver
-    #    url: jdbc:postgresql://10.0.4.6:5432/sirius
-    url: jdbc:postgresql://127.0.0.1:5432/sirius
-    username: gmc
+    url: jdbc:postgresql://localhost:5432/hanaroholdings?autoReconnect=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: goodman
     password: Gmc@1234!
-
+    hikari:
+      maximumPoolSize: 30
+      idleTimeout: 60000
+      maxLifetime: 60000
+    dbcp2:
+      test-while-idle: true
   jpa:
+    open-in-view: true
+    generate-ddl: true
     hibernate:
       ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     properties:
       hibernate:
-        show_sql: false
+        #        show_sql: true
         format_sql: true
   jackson:
     serialization:
@@ -30,14 +101,32 @@ spring:
   output:
     ansi:
       enabled: detect
+  task:
+    execution:
+      pool:
+        core-size: 200
+        max-size: 500
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  error:
+    include-message: always
 
 logging:
   config: classpath:logback-spring.xml
   file:
     path: logs
   level:
-    org.springframework: INFO
-    com:
-      zaxxer:
-        hikari: trace
-        hikari.HikariConfig: debug
+    #    org.hibernate.SQL: debug
+    #    org.hibernate.type: debug
+    com.gmc.trading.tool.flip: info
+
+profile:
+  certification:
+    host: 221.168.39.103

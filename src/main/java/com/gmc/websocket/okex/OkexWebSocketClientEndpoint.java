@@ -3,12 +3,12 @@ package com.gmc.websocket.okex;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gmc.redis.entity.WebSocketOrderbook;
+import com.gmc.redis.repository.WebSocketOrderbookRepository;
 import com.gmc.websocket.config.BeanUtils;
 import com.gmc.websocket.domain.FlipCurrency;
-import com.gmc.websocket.domain.WebSocketOrderbook;
 import com.gmc.websocket.domain.WebSocketTicker;
 import com.gmc.websocket.repository.FlipCurrencyRepository;
-import com.gmc.websocket.repository.WebSocketOrderbookRepository;
 import com.gmc.websocket.repository.WebSocketTickerRepository;
 import com.gmc.websocket.service.WebSocketService;
 import com.gmc.websocket.service.impl.WebSocketServiceImpl;
@@ -113,18 +113,16 @@ public class OkexWebSocketClientEndpoint {
                         webSocketTickerRepository.save(webSocketTicker);
                     }
                 } else if (jsonNode.path("arg").path("channel").asText().equals("books5")) {
-                    WebSocketOrderbook webSocketOrderbook = webSocketOrderbookRepository.findByFlipCurrency(findCurrency);
+                    WebSocketOrderbook webSocketOrderbook = webSocketOrderbookRepository.findProductByMarket(findCurrency.getFlipPayment()+"-"+findCurrency.getFlipCurrencyName());
                     if (webSocketOrderbook == null) {
                         webSocketOrderbook = WebSocketOrderbook.builder()
-                                .flipCurrency(findCurrency)
+                                .market(findCurrency.getFlipPayment()+"-"+findCurrency.getFlipCurrencyName())
                                 .jsonData(message)
-                                .timestamp(LocalDateTime.now())
                                 .build();
                         webSocketOrderbookRepository.save(webSocketOrderbook);
                     } else {
-                        webSocketOrderbook.setFlipCurrency(findCurrency);
+                        webSocketOrderbook.setMarket(findCurrency.getFlipPayment()+"-"+findCurrency.getFlipCurrencyName());
                         webSocketOrderbook.setJsonData(message);
-                        webSocketOrderbook.setTimestamp(LocalDateTime.now());
                         webSocketOrderbookRepository.save(webSocketOrderbook);
                     }
                 }
@@ -133,7 +131,7 @@ public class OkexWebSocketClientEndpoint {
     }
 
     private void book400(ObjectMapper mapper, JsonNode jsonNode, FlipCurrency findCurrency) throws JSONException, JsonProcessingException {
-        WebSocketOrderbook webSocketOrderbook = webSocketOrderbookRepository.findByFlipCurrency(findCurrency);
+        WebSocketOrderbook webSocketOrderbook = webSocketOrderbookRepository.findProductByMarket(findCurrency.getFlipPayment()+"-"+findCurrency.getFlipCurrencyName());
         if (webSocketOrderbook == null) {
             //처음 저장은 스냅샷
             if (jsonNode.path("action").asText().equals("snapshot")) {
@@ -151,9 +149,8 @@ public class OkexWebSocketClientEndpoint {
                 orderbook.put("asks", beforeAsks);
                 orderbook.put("bids", beforeBids);
                 webSocketOrderbook = WebSocketOrderbook.builder()
-                        .flipCurrency(findCurrency)
+                        .market(findCurrency.getFlipPayment()+"-"+findCurrency.getFlipCurrencyName())
                         .jsonData(orderbook.toString())
-                        .timestamp(LocalDateTime.now())
                         .build();
                 webSocketOrderbookRepository.save(webSocketOrderbook);
             }
@@ -221,9 +218,8 @@ public class OkexWebSocketClientEndpoint {
                     }
                 }
             }
-            webSocketOrderbook.setFlipCurrency(findCurrency);
+            webSocketOrderbook.setMarket(findCurrency.getFlipPayment()+"-"+findCurrency.getFlipCurrencyName());
             webSocketOrderbook.setJsonData(orderbook.toString());
-            webSocketOrderbook.setTimestamp(LocalDateTime.now());
             webSocketOrderbookRepository.save(webSocketOrderbook);
         }
     }
